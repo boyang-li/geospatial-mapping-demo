@@ -1,0 +1,58 @@
+# Ignore everything by default
+*
+
+# Allow specific directories
+!traffic_sign_detection/
+traffic_sign_detection/*
+
+# Allow core Python scripts and files to be checked in
+!README.md
+!PROJECT_STRUCTURE.md
+!STREAMLIT_README.md
+
+# Core Detection Module
+!traffic_sign_detection/detect_traffic_signs.py
+
+# Coordinate Transformation & GPS Modules
+!pixel_to_distance.py
+!get_object_gps.py
+
+# GPS Comparison & Validation
+!compare_gps.py
+!simulated_test_comparison.py
+!real_data_comparison.py
+
+# Visualization & Dashboard
+!streamlit_app.py
+!streamlit_app_backup.py
+
+# Configuration files (not test-specific)
+!overpass-query.ql
+
+# Allow .gitignore itself
+!.gitignore
+
+# Ignore test input specific files (marked with * in README)
+traffic_sign_detection/vid_input.mp4
+traffic_sign_detection/yolov8n.pt
+camera-info.txt
+Camera Intrinsics
+osm.xml
+vid_frame.txt
+vid_frame.png
+traffic_signs.csv
+comparison_results.csv
+simulated_comparison_results.csv
+real_comparison_results.csv
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
