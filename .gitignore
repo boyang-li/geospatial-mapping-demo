@@ -6,6 +6,19 @@
 traffic_sign_detection/*
 !local-mvp/
 !prod-pipeline/
+!modules/
+!data/
+!docs/
+
+# Data directories (allow structure, ignore contents)
+data/*
+!data/.gitkeep
+data/videos/*
+!data/videos/.gitkeep
+data/detections/*
+!data/detections/.gitkeep
+data/roi_patches/*
+!data/roi_patches/.gitkeep
 
 # Allow core Python scripts and files to be checked in
 !README.md
@@ -34,6 +47,14 @@ traffic_sign_detection/*
 # Allow .gitignore itself
 !.gitignore
 
+# Allow modules directory recursively
+!modules/
+!modules/**
+
+# Allow docs directory
+!docs/
+!docs/**
+
 # Ignore test input specific files (marked with * in README)
 traffic_sign_detection/vid_input.mp4
 traffic_sign_detection/yolov8n.pt
@@ -58,3 +79,31 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+venv/
+.venv/
+env/
+.env
+
+# Go binaries and dependencies
+modules/ingestion/bin/
+modules/ingestion/vendor/
+modules/ingestion/.env
+modules/ingestion/test_output.log
+
+# YOLOv8 weights
+*.pt
+yolov8*.pt
+
+# Video files (large)
+*.mp4
+*.avi
+*.mov
+
+# CSV outputs (can be large)
+*.csv
+
+# Images
+*.jpg
+*.jpeg
+*.png
+*.gif

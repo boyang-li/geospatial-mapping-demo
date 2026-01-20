@@ -1,0 +1,202 @@
+package ingestion
+
+import (
+	"encoding/csv"
+	"fmt"
+	"io"
+	"log"
+	"os"
+	"strconv"
+	"time"
+
+	"github.com/boyangli/sentinelmap-producer/models"
+	"github.com/boyangli/sentinelmap-producer/producer"
+)
+
+// CSVReader handles streaming detection data from CSV files
+type CSVReader struct {
+	filePath  string
+	vehicleID string
+	sessionID string
+}
+
+// NewCSVReader creates a new CSV reader
+func NewCSVReader(filePath, vehicleID, sessionID string) *CSVReader {
+	return &CSVReader{
+		filePath:  filePath,
+		vehicleID: vehicleID,
+		sessionID: sessionID,
+	}
+}
+
+// StreamToChannel reads CSV and sends detections to a channel
+func (cr *CSVReader) StreamToChannel(detectionChan chan<- *models.Detection) error {
+	file, err := os.Open(cr.filePath)
+	if err != nil {
+		return fmt.Errorf("failed to open CSV file: %w", err)
+	}
+	defer file.Close()
+	
+	reader := csv.NewReader(file)
+	
+	// Read header
+	header, err := reader.Read()
+	if err != nil {
+		return fmt.Errorf("failed to read CSV header: %w", err)
+	}
+	
+	log.Printf("📄 CSV Header: %v", header)
+	
+	// Column indices
+	colMap := make(map[string]int)
+	for i, col := range header {
+		colMap[col] = i
+	}
+	
+	lineCount := 0
+	startTime := time.Now()
+	
+	for {
+		row, err := reader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Printf("⚠️  Error reading CSV row: %v", err)
+			continue
+		}
+		
+		detection, err := cr.parseRow(row, colMap)
+		if err != nil {
+			log.Printf("⚠️  Error parsing row: %v", err)
+			continue
+		}
+		
+		detectionChan <- detection
+		lineCount++
+		
+		if lineCount%10000 == 0 {
+			elapsed := time.Since(startTime)
+			rate := float64(lineCount) / elapsed.Seconds()
+			log.Printf("📊 Streamed %d records (%.2f records/sec)", lineCount, rate)
+		}
+	}
+	
+	elapsed := time.Since(startTime)
+	avgRate := float64(lineCount) / elapsed.Seconds()
+	log.Printf("✅ CSV streaming complete - %d records in %v (avg: %.2f records/sec)", 
+		lineCount, elapsed, avgRate)
+	
+	return nil
+}
+
+// parseRow converts a CSV row to a Detection struct
+func (cr *CSVReader) parseRow(row []string, colMap map[string]int) (*models.Detection, error) {
+	frameNumber, err := strconv.Atoi(row[colMap["frame_number"]])
+	if err != nil {
+		return nil, fmt.Errorf("invalid frame_number: %w", err)
+	}
+	
+	timestampSec, err := strconv.ParseFloat(row[colMap["timestamp_sec"]], 64)
+	if err != nil {
+		return nil, fmt.Errorf("invalid timestamp_sec: %w", err)
+	}
+	
+	u, err := strconv.ParseFloat(row[colMap["u"]], 64)
+	if err != nil {
+		return nil, fmt.Errorf("invalid u: %w", err)
+	}
+	
+	v, err := strconv.ParseFloat(row[colMap["v"]], 64)
+	if err != nil {
+		return nil, fmt.Errorf("invalid v: %w", err)
+	}
+	
+	confidence, err := strconv.ParseFloat(row[colMap["confidence"]], 64)
+	if err != nil {
+		return nil, fmt.Errorf("invalid confidence: %w", err)
+	}
+	
+	className := row[colMap["class_name"]]
+	
+	// Parse GPS fields (if present)
+	var vehicleLat, vehicleLon, heading *float64
+	if latIdx, ok := colMap["vehicle_lat"]; ok && latIdx < len(row) && row[latIdx] != "" {
+		if lat, err := strconv.ParseFloat(row[latIdx], 64); err == nil {
+			vehicleLat = &lat
+		}
+	}
+	if lonIdx, ok := colMap["vehicle_lon"]; ok && lonIdx < len(row) && row[lonIdx] != "" {
+		if lon, err := strconv.ParseFloat(row[lonIdx], 64); err == nil {
+			vehicleLon = &lon
+		}
+	}
+	if hdgIdx, ok := colMap["heading"]; ok && hdgIdx < len(row) && row[hdgIdx] != "" {
+		if hdg, err := strconv.ParseFloat(row[hdgIdx], 64); err == nil {
+			heading = &hdg
+		}
+	}
+	
+	return &models.Detection{
+		DetectionID:  producer.GenerateDetectionID(),
+		VehicleID:    cr.vehicleID,
+		SessionID:    cr.sessionID,
+		IngestedAt:   time.Now(),
+		FrameNumber:  frameNumber,
+		TimestampSec: timestampSec,
+		PixelU:       u,
+		PixelV:       v,
+		Confidence:   confidence,
+		ClassName:    className,
+		VehicleLat:   vehicleLat,
+		VehicleLon:   vehicleLon,
+		Heading:      heading,
+	}, nil
+}
+
+// ReadAll reads entire CSV and returns all detections (use for smaller files)
+func (cr *CSVReader) ReadAll() ([]*models.Detection, error) {
+	file, err := os.Open(cr.filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open CSV file: %w", err)
+	}
+	defer file.Close()
+	
+	reader := csv.NewReader(file)
+	
+	// Read header
+	header, err := reader.Read()
+	if err != nil {
+		return nil, fmt.Errorf("failed to read CSV header: %w", err)
+	}
+	
+	// Column indices
+	colMap := make(map[string]int)
+	for i, col := range header {
+		colMap[col] = i
+	}
+	
+	var detections []*models.Detection
+	
+	for {
+		row, err := reader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Printf("⚠️  Error reading CSV row: %v", err)
+			continue
+		}
+		
+		detection, err := cr.parseRow(row, colMap)
+		if err != nil {
+			log.Printf("⚠️  Error parsing row: %v", err)
+			continue
+		}
+		
+		detections = append(detections, detection)
+	}
+	
+	log.Printf("✅ Loaded %d detections from CSV", len(detections))
+	return detections, nil
+}
