@@ -5,7 +5,6 @@
 !traffic_sign_detection/
 traffic_sign_detection/*
 !local-mvp/
-!prod-pipeline/
 !modules/
 !data/
 !docs/
