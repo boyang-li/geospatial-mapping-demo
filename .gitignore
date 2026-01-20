@@ -4,6 +4,8 @@
 # Allow specific directories
 !traffic_sign_detection/
 traffic_sign_detection/*
+!local-mvp/
+!prod-pipeline/
 
 # Allow core Python scripts and files to be checked in
 !README.md
