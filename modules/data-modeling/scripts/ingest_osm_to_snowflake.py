@@ -151,19 +151,33 @@ def upload_to_snowflake(nodes: list, source_file: str):
         conn.close()
 
 def main():
-    # Path to your OSM XML file
-    osm_file = Path('/Users/boyangli/Repo/sentinel-map/modules/local-mvp/toronto_traffic.xml')
+    # Use relative path from project root
+    osm_file = Path(__file__).parent.parent.parent / 'local-mvp' / 'osm.xml'
     
     if not osm_file.exists():
         print(f"❌ File not found: {osm_file}")
-        # Try relative path as fallback
-        osm_file = Path(__file__).parent.parent / 'local-mvp' / 'toronto_traffic.xml'
-        if not osm_file.exists():
-            print(f"❌ Also tried: {osm_file}")
-            return
+        print(f"\n💡 Available OSM files in local-mvp/:")
+        osm_dir = osm_file.parent
+        if osm_dir.exists():
+            for f in osm_dir.glob('*.xml'):
+                print(f"   - {f.name}")
+        else:
+            print("   Directory not found!")
+        print("\n💡 To download OSM data:")
+        print("   cd modules/data-modeling/scripts")
+        print("   python download_osm_from_detections.py")
+        return
     
     print(f"📖 Parsing {osm_file}...")
     nodes = parse_osm_xml(str(osm_file))
+    
+    if len(nodes) == 0:
+        print("⚠️  No traffic infrastructure nodes found in OSM file.")
+        print("   Supported tags:")
+        print("   - node with tag k='traffic_sign'")
+        print("   - node with tag k='highway', v='traffic_signals'")
+        print("   - node with tag k='highway', v='stop'")
+        return
     
     print(f"✅ Found {len(nodes)} traffic infrastructure nodes")
     

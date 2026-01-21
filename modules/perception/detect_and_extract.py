@@ -52,12 +52,12 @@ class PerceptionPipeline:
         self.total_detections = 0
         self.inference_times = []
         
-    def extract_gps_from_frame(self, frame: np.ndarray, frame_number: int) -> Tuple[float, float, float]:
-        """Extract GPS coordinates and timestamp from frame overlay (bottom-left corner)
+    def extract_gps_from_frame(self, frame: np.ndarray, frame_number: int) -> Tuple[float, float, str]:
+        """Extract GPS coordinates and recording timestamp from frame overlay
         
         Uses OCR (pytesseract) to read GPS coordinates from VIOFO A119 V3 dashcam overlay.
-        Format: GPS (bottom-left): "40 KM/H N43.792879 W79.314193"
-                Timestamp (bottom-right): "2025-12-30 19:15:13"
+        Format: GPS (bottom-left): "56 KM/H N43.800114 W79.317977"
+                Timestamp (bottom-right): "18/01/2026 19:15:12"
         
         Fallback: If OCR fails, simulates GPS drift for testing
         
@@ -66,8 +66,9 @@ class PerceptionPipeline:
             frame_number: Current frame index
             
         Returns:
-            (latitude, longitude, heading) tuple
-            Note: Timestamp is extracted but not returned in this signature (consider updating CSV schema)
+            (latitude, longitude, recording_timestamp) tuple
+            Note: Speed/heading omitted by design - not required for OSM matching
+                  Timestamp enables geospatial-aware caching based on data freshness
         """
         try:
             import pytesseract
@@ -99,7 +100,6 @@ class PerceptionPipeline:
             # Parse VIOFO format: N43.792879 W79.314193
             lat = None
             lon = None
-            heading = None
             
             # Extract latitude
             lat_match = re.search(r'[NS]\s*(\d+\.?\s*\d+)', gps_text, re.IGNORECASE)
@@ -117,21 +117,17 @@ class PerceptionPipeline:
                 if 'W' in lon_match.group(0).upper():
                     lon = -abs(lon)
             
-            # Extract speed (use as heading approximation)
-            speed_match = re.search(r'(\d+)\s*KM/H', gps_text, re.IGNORECASE)
-            if speed_match:
-                heading = float(speed_match.group(1))
+            # Note: Speed/heading intentionally not extracted - not needed for spatial proximity matching
             
-            # Parse timestamp (for future use - consider adding to CSV output)
-            # timestamp_match = re.search(r'(\d{2}/\d{2}/\d{4}\s+\d{2}:\d{2}:\d{2})', timestamp_text)  # VIOFO: DD/MM/YYYY HH:MM:SS
-            # if timestamp_match:
-            #     recording_timestamp = timestamp_match.group(1)
-            #     # TODO: Add to CSV schema as 'recording_timestamp' column
-            #     # Enables geospatial-aware caching based on data freshness
+            # Parse timestamp from bottom-right corner (VIOFO: DD/MM/YYYY HH:MM:SS)
+            recording_timestamp = None
+            timestamp_match = re.search(r'(\d{2}/\d{2}/\d{4}\s+\d{2}:\d{2}:\d{2})', timestamp_text)
+            if timestamp_match:
+                recording_timestamp = timestamp_match.group(1)
             
             # If OCR succeeded, return results
             if lat is not None and lon is not None:
-                return lat, lon, heading if heading is not None else 0.0
+                return lat, lon, recording_timestamp if recording_timestamp else ''
                 
         except (ImportError, Exception) as e:
             # Fall through to simulation if OCR fails
@@ -140,14 +136,12 @@ class PerceptionPipeline:
         # Fallback: Simulated GPS drift for testing
         base_lat = 43.7900
         base_lon = -79.3140
-        base_heading = 45.0
         
         # Simulate 0.0001 degree drift per 100 frames (~10 meters)
         lat = base_lat + (frame_number / 10000) * 0.0001
         lon = base_lon + (frame_number / 10000) * 0.0001
-        heading = (base_heading + (frame_number / 100) * 2.5) % 360
         
-        return lat, lon, heading
+        return lat, lon, ''
     
     def extract_roi_patch(
         self,
@@ -227,7 +221,7 @@ class PerceptionPipeline:
         csv_writer.writerow([
             'frame_number', 'timestamp_sec', 'u', 'v',
             'confidence', 'class_name',
-            'vehicle_lat', 'vehicle_lon', 'heading'
+            'vehicle_lat', 'vehicle_lon', 'recording_timestamp'
         ])
         
         frame_count = 0
@@ -246,8 +240,8 @@ class PerceptionPipeline:
                 frame_count += 1
                 continue
             
-            # Extract GPS from frame overlay
-            vehicle_lat, vehicle_lon, heading = self.extract_gps_from_frame(frame, frame_count)
+            # Extract GPS and recording timestamp from frame overlay
+            vehicle_lat, vehicle_lon, recording_timestamp = self.extract_gps_from_frame(frame, frame_count)
             
             # Run YOLOv8 inference
             inference_start = time.time()
@@ -290,7 +284,7 @@ class PerceptionPipeline:
                         class_name,
                         f"{vehicle_lat:.6f}",
                         f"{vehicle_lon:.6f}",
-                        f"{heading:.1f}"
+                        recording_timestamp
                     ])
                     
                     detection_count += 1

@@ -120,7 +120,8 @@ func (cr *CSVReader) parseRow(row []string, colMap map[string]int) (*models.Dete
 	className := row[colMap["class_name"]]
 	
 	// Parse GPS fields (if present)
-	var vehicleLat, vehicleLon, heading *float64
+	var vehicleLat, vehicleLon *float64
+	var recordingTimestamp *string
 	if latIdx, ok := colMap["vehicle_lat"]; ok && latIdx < len(row) && row[latIdx] != "" {
 		if lat, err := strconv.ParseFloat(row[latIdx], 64); err == nil {
 			vehicleLat = &lat
@@ -131,10 +132,9 @@ func (cr *CSVReader) parseRow(row []string, colMap map[string]int) (*models.Dete
 			vehicleLon = &lon
 		}
 	}
-	if hdgIdx, ok := colMap["heading"]; ok && hdgIdx < len(row) && row[hdgIdx] != "" {
-		if hdg, err := strconv.ParseFloat(row[hdgIdx], 64); err == nil {
-			heading = &hdg
-		}
+	if tsIdx, ok := colMap["recording_timestamp"]; ok && tsIdx < len(row) && row[tsIdx] != "" {
+		ts := row[tsIdx]
+		recordingTimestamp = &ts
 	}
 	
 	return &models.Detection{
@@ -150,7 +150,7 @@ func (cr *CSVReader) parseRow(row []string, colMap map[string]int) (*models.Dete
 		ClassName:    className,
 		VehicleLat:   vehicleLat,
 		VehicleLon:   vehicleLon,
-		Heading:      heading,
+		RecordingTimestamp: recordingTimestamp,
 	}, nil
 }
 

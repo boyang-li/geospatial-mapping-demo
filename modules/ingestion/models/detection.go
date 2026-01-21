@@ -28,7 +28,7 @@ type Detection struct {
 	// GPS data (if available)
 	VehicleLat    *float64  `json:"vehicle_lat,omitempty"`
 	VehicleLon    *float64  `json:"vehicle_lon,omitempty"`
-	Heading       *float64  `json:"heading,omitempty"`
+	RecordingTimestamp *string `json:"recording_timestamp,omitempty"`
 	
 	// Computed geospatial data (optional, computed later in pipeline)
 	ObjectLat     *float64  `json:"object_lat,omitempty"`
@@ -61,5 +61,5 @@ type CSVRow struct {
 	ClassName    string  `csv:"class_name"`
 	VehicleLat   float64 `csv:"vehicle_lat"`
 	VehicleLon   float64 `csv:"vehicle_lon"`
-	Heading      float64 `csv:"heading"`
+	RecordingTimestamp string `csv:"recording_timestamp"`
 }
