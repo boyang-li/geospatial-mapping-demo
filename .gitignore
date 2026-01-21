@@ -119,3 +119,5 @@ yolov8*.pt
 *.jpeg
 *.png
 *.gif
+data/toronto_traffic.xml
+data/*.xml

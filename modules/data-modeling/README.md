@@ -133,10 +133,33 @@ SNOWFLAKE_USER=YOUR_USERNAME
 SNOWFLAKE_PASSWORD=YOUR_PASSWORD
 ```
 
-#### 3.3 Run Ingestion
+#### 3.3 Download OSM Data
+
+**Option 1: Auto-download from Snowflake detections (Recommended)**
+```bash
+cd modules/data-modeling/scripts
+python download_osm_from_detections.py
+```
+This queries Snowflake for your detection GPS bounds and downloads only relevant OSM nodes.
+
+**Option 2: Download Toronto traffic infrastructure**
+```bash
+# Download via Overpass API (traffic signals, stop signs, etc.)
+curl "https://overpass-api.de/api/interpreter" \
+  --data-urlencode "data=[out:xml][timeout:300];
+  area[name=\"Toronto\"]->.a;
+  (
+    node[\"highway\"=\"traffic_signals\"](area.a);
+    node[\"highway\"=\"stop\"](area.a);
+    node[\"traffic_sign\"](area.a);
+  );
+  out body;" > ../../data/toronto_traffic.xml
+```
+
+#### 3.4 Run Ingestion
 
 ```bash
-# Upload OSM XML from local-mvp/osm.xml to Snowflake
+# Upload OSM XML to Snowflake
 python scripts/ingest_osm_to_snowflake.py
 ```
 

@@ -151,21 +151,26 @@ def upload_to_snowflake(nodes: list, source_file: str):
         conn.close()
 
 def main():
-    # Use relative path from project root
-    osm_file = Path(__file__).parent.parent.parent / 'local-mvp' / 'osm.xml'
+    # Check multiple locations for OSM file
+    project_root = Path(__file__).parent.parent.parent
+    
+    # Try data/ directory first (preferred location)
+    osm_file = project_root / 'data' / 'toronto_traffic.xml'
+    if not osm_file.exists():
+        # Fallback to local-mvp/osm.xml
+        osm_file = project_root / 'local-mvp' / 'osm.xml'
     
     if not osm_file.exists():
-        print(f"❌ File not found: {osm_file}")
-        print(f"\n💡 Available OSM files in local-mvp/:")
-        osm_dir = osm_file.parent
-        if osm_dir.exists():
-            for f in osm_dir.glob('*.xml'):
-                print(f"   - {f.name}")
-        else:
-            print("   Directory not found!")
-        print("\n💡 To download OSM data:")
+        print(f"❌ OSM file not found in expected locations:")
+        print(f"   - {project_root / 'data' / 'toronto_traffic.xml'}")
+        print(f"   - {project_root / 'local-mvp' / 'osm.xml'}")
+        print(f"\n💡 To download OSM data:")
         print("   cd modules/data-modeling/scripts")
         print("   python download_osm_from_detections.py")
+        print("\n   Or download Toronto data directly:")
+        print('   curl "https://overpass-api.de/api/interpreter" \\')
+        print('     --data-urlencode "data=[out:xml][timeout:300];...' )
+        print('     > ../../data/toronto_traffic.xml')
         return
     
     print(f"📖 Parsing {osm_file}...")
