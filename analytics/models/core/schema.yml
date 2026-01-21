@@ -1,0 +1,44 @@
+version: 2
+
+models:
+  - name: fct_map_audit
+    description: "Fact table comparing detected objects against OSM ground truth"
+    columns:
+      - name: video_name
+        description: "Source video file name"
+        tests:
+          - not_null
+          
+      - name: frame_number
+        description: "Frame number in video"
+        tests:
+          - not_null
+          
+      - name: detected_class
+        description: "YOLOv8 detected object class"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['traffic light', 'stop sign']
+              
+      - name: confidence
+        description: "Detection confidence score (0-1)"
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0 AND <= 1"
+              
+      - name: distance_meters
+        description: "Distance to nearest OSM node"
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+              config:
+                where: "distance_meters is not null"
+                
+      - name: audit_status
+        description: "Classification of detection accuracy"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['VERIFIED', 'NEW_DISCOVERY', 'CLASS_MISMATCH', 'UNKNOWN']
