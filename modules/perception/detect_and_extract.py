@@ -53,10 +53,11 @@ class PerceptionPipeline:
         self.inference_times = []
         
     def extract_gps_from_frame(self, frame: np.ndarray, frame_number: int) -> Tuple[float, float, float]:
-        """Extract GPS coordinates from frame overlay (bottom-left corner)
+        """Extract GPS coordinates and timestamp from frame overlay (bottom-left corner)
         
         Uses OCR (pytesseract) to read GPS coordinates from VIOFO A119 V3 dashcam overlay.
-        Format: "40 KM/H N43.792879 W79.314193"
+        Format: GPS (bottom-left): "40 KM/H N43.792879 W79.314193"
+                Timestamp (bottom-right): "2025-12-30 19:15:13"
         
         Fallback: If OCR fails, simulates GPS drift for testing
         
@@ -66,6 +67,7 @@ class PerceptionPipeline:
             
         Returns:
             (latitude, longitude, heading) tuple
+            Note: Timestamp is extracted but not returned in this signature (consider updating CSV schema)
         """
         try:
             import pytesseract
@@ -76,14 +78,23 @@ class PerceptionPipeline:
             # Extract bottom-left region where GPS overlay appears
             overlay_height = int(h * 0.15)  # Bottom 15% of frame
             overlay_width = int(w * 0.35)   # Left 35% of frame
-            overlay_region = frame[h - overlay_height:h, 0:overlay_width]
+            gps_region = frame[h - overlay_height:h, 0:overlay_width]
             
-            # Preprocess for better OCR - try simple binary threshold
-            gray = cv2.cvtColor(overlay_region, cv2.COLOR_BGR2GRAY)
-            _, binary = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
+            # Extract bottom-right region where timestamp appears
+            timestamp_width = int(w * 0.25)  # Right 25% of frame
+            timestamp_region = frame[h - overlay_height:h, w - timestamp_width:w]
+            
+            # Preprocess GPS region - simple binary threshold works best
+            gray_gps = cv2.cvtColor(gps_region, cv2.COLOR_BGR2GRAY)
+            _, binary_gps = cv2.threshold(gray_gps, 127, 255, cv2.THRESH_BINARY)
+            
+            # Preprocess timestamp region
+            gray_ts = cv2.cvtColor(timestamp_region, cv2.COLOR_BGR2GRAY)
+            _, binary_ts = cv2.threshold(gray_ts, 127, 255, cv2.THRESH_BINARY)
             
             # Run OCR
-            text = pytesseract.image_to_string(binary, config='--psm 6')
+            gps_text = pytesseract.image_to_string(binary_gps, config='--psm 6')
+            timestamp_text = pytesseract.image_to_string(binary_ts, config='--psm 6')
             
             # Parse VIOFO format: N43.792879 W79.314193
             lat = None
@@ -91,7 +102,7 @@ class PerceptionPipeline:
             heading = None
             
             # Extract latitude
-            lat_match = re.search(r'[NS]\s*(\d+\.?\s*\d+)', text, re.IGNORECASE)
+            lat_match = re.search(r'[NS]\s*(\d+\.?\s*\d+)', gps_text, re.IGNORECASE)
             if lat_match:
                 lat_str = lat_match.group(1).replace(' ', '').replace('\n', '')
                 lat = float(lat_str)
@@ -99,7 +110,7 @@ class PerceptionPipeline:
                     lat = -abs(lat)
             
             # Extract longitude
-            lon_match = re.search(r'[EW]\s*(\d+\.?\s*\d+)', text, re.IGNORECASE)
+            lon_match = re.search(r'[EW]\s*(\d+\.?\s*\d+)', gps_text, re.IGNORECASE)
             if lon_match:
                 lon_str = lon_match.group(1).replace(' ', '').replace('\n', '')
                 lon = float(lon_str)
@@ -107,9 +118,14 @@ class PerceptionPipeline:
                     lon = -abs(lon)
             
             # Extract speed (use as heading approximation)
-            speed_match = re.search(r'(\d+)\s*KM/H', text, re.IGNORECASE)
+            speed_match = re.search(r'(\d+)\s*KM/H', gps_text, re.IGNORECASE)
             if speed_match:
                 heading = float(speed_match.group(1))
+            
+            # Parse timestamp (for future use - consider adding to CSV output)
+            # timestamp_match = re.search(r'(\d{4}[-/]\d{2}[-/]\d{2}\s+\d{2}:\d{2}:\d{2})', timestamp_text)
+            # if timestamp_match:
+            #     recording_timestamp = timestamp_match.group(1)
             
             # If OCR succeeded, return results
             if lat is not None and lon is not None:
