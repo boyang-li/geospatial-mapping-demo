@@ -51,6 +51,7 @@ data/roi_patches/*
 
 # Allow analytics directory (dbt Cloud)
 !analytics/
+!analytics/**
 !modules/**
 
 # Allow docs directory

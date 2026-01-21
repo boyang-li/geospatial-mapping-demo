@@ -9,7 +9,7 @@ with source_data as (
     select
         record_content,
         record_metadata,
-        inserted_at
+        ingested_at
     from {{ source('raw', 'stg_detections') }}
     where record_content is not null
 ),
@@ -34,7 +34,7 @@ flattened as (
         ) as detection_location,
         
         -- Metadata
-        inserted_at as snowflake_inserted_at,
+        ingested_at as snowflake_ingested_at,
         current_timestamp() as dbt_updated_at
         
     from source_data

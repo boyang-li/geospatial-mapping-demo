@@ -16,16 +16,16 @@ sources:
       - name: ref_osm_nodes
         description: "OpenStreetMap reference data for Toronto traffic infrastructure"
         columns:
-          - name: node_id
+          - name: osm_id
             description: "OSM node identifier"
             tests:
               - not_null
               - unique
-          - name: lat
+          - name: latitude
             description: "Latitude coordinate"
             tests:
               - not_null
-          - name: lon
+          - name: longitude
             description: "Longitude coordinate"
             tests:
               - not_null

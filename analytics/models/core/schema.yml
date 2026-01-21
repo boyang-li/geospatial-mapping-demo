@@ -25,16 +25,18 @@ models:
         description: "Detection confidence score (0-1)"
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
-              expression: ">= 0 AND <= 1"
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              inclusive: true
               
       - name: distance_meters
         description: "Distance to nearest OSM node"
         tests:
-          - dbt_utils.expression_is_true:
-              expression: ">= 0"
-              config:
-                where: "distance_meters is not null"
+          - dbt_utils.accepted_range:
+              min_value: 0
+              inclusive: true
+              where: "distance_meters is not null"
                 
       - name: audit_status
         description: "Classification of detection accuracy"

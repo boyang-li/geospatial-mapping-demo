@@ -28,7 +28,7 @@ proximity_matches as (
         p.recording_timestamp,
         p.detection_location,
         
-        o.node_id as nearest_osm_node_id,
+        o.osm_id as nearest_osm_node_id,
         o.normalized_type as osm_class,
         o.latitude as osm_lat,
         o.longitude as osm_lon,

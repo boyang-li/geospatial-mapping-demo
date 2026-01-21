@@ -6,22 +6,22 @@
 }}
 
 select
-    node_id,
-    lat as latitude,
-    lon as longitude,
+    osm_id,
+    latitude,
+    longitude,
     
     -- Normalize object types for matching
     case
-        when lower(type) = 'traffic_signals' then 'traffic light'
-        when lower(type) = 'stop' then 'stop sign'
-        when lower(type) like '%crossing%' then 'pedestrian crossing'
-        else lower(type)
+        when lower(osm_type) = 'traffic_signals' then 'traffic light'
+        when lower(osm_type) = 'stop' then 'stop sign'
+        when lower(osm_type) like '%crossing%' then 'pedestrian crossing'
+        else lower(osm_type)
     end as normalized_type,
     
-    type as original_osm_type,
+    osm_type as original_osm_type,
     
     -- Create geography point
-    st_makepoint(lon, lat) as osm_location,
+    st_makepoint(longitude, latitude) as osm_location,
     
     -- Parse tags if available
     tags:name::string as location_name,
@@ -30,5 +30,5 @@ select
     current_timestamp() as dbt_updated_at
     
 from {{ source('raw', 'ref_osm_nodes') }}
-where lat is not null
-  and lon is not null
+where latitude is not null
+  and longitude is not null
