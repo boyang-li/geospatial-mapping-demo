@@ -123,9 +123,11 @@ class PerceptionPipeline:
                 heading = float(speed_match.group(1))
             
             # Parse timestamp (for future use - consider adding to CSV output)
-            # timestamp_match = re.search(r'(\d{4}[-/]\d{2}[-/]\d{2}\s+\d{2}:\d{2}:\d{2})', timestamp_text)
+            # timestamp_match = re.search(r'(\d{2}/\d{2}/\d{4}\s+\d{2}:\d{2}:\d{2})', timestamp_text)  # VIOFO: DD/MM/YYYY HH:MM:SS
             # if timestamp_match:
             #     recording_timestamp = timestamp_match.group(1)
+            #     # TODO: Add to CSV schema as 'recording_timestamp' column
+            #     # Enables geospatial-aware caching based on data freshness
             
             # If OCR succeeded, return results
             if lat is not None and lon is not None:

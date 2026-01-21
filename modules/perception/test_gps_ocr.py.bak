@@ -22,7 +22,7 @@ def extract_gps_from_frame_ocr(frame: np.ndarray, debug: bool = False) -> tuple:
         import pytesseract
     except ImportError:
         print("⚠️  pytesseract not installed. Install with: pip install pytesseract")
-        return None, None, None, None
+        return None, None, None
     
     h, w = frame.shape[:2]
     
@@ -76,11 +76,12 @@ def extract_gps_from_frame_ocr(frame: np.ndarray, debug: bool = False) -> tuple:
     # VIOFO A119 V3 format: "N43.792879 W79.314193"
     # Also support spaces: "N43. 792879 W79. 314193" (OCR may insert spaces)
     
+    # Use GPS text for parsing coordinates
+    text = gps_text
+    
     lat = None
     lon = None
     heading = None
-    
-    text = best_text
     
     # Try to find latitude - VIOFO format: N43.792879
     lat_patterns = [
