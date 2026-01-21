@@ -1,0 +1,5 @@
+streamlit
+snowflake-connector-python
+folium
+streamlit-folium
+python-dotenv
