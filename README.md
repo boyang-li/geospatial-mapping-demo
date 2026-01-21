@@ -329,26 +329,31 @@ KAFKA_BATCH_SIZE=16384
 - [x] Local MVP (Streamlit app with OSM integration)
 - [x] Module A: YOLOv8 detection with M4 MPS acceleration
 - [x] Module A: ROI patch extraction (256×256)
-- [x] Module A: GPS coordinate simulation (OCR planned)
+- [x] Module A: OCR-based GPS extraction from VIOFO A119 V3 overlay
+- [x] Module A: Recording timestamp extraction (DD/MM/YYYY HH:MM:SS)
 - [x] Module B: Golang Kafka producer with goroutines
-- [x] Module B: CSV streaming with GPS support
+- [x] Module B: CSV streaming with GPS + timestamp support
 - [x] Module B: Exponential backoff + idempotent writes
+- [x] Module C: Snowflake database setup with resource monitoring
+- [x] Module C: Kafka-Snowflake connector (Snowpipe Streaming)
+- [x] Module C: OSM ground truth ingestion (51,556 Toronto nodes)
+- [x] Module C: Spatial proximity matching (ST_DISTANCE queries)
 - [x] Confluent Cloud integration (100% success rate)
-- [x] End-to-end testing (58 detections, 100% delivery)
-- [x] Modular architecture (modules/perception + modules/ingestion)
-- [x] Comprehensive documentation (READMEs + test results)
+- [x] End-to-end testing (26 detections, 55% match rate with OSM)
+- [x] Modular architecture (perception → ingestion → analytics)
+- [x] Comprehensive documentation (READMEs + SQL scripts + troubleshooting)
 
 ### In Progress 🚧
-- [ ] Module A: OCR-based GPS extraction from overlays
-- [ ] Multi-video batch processing
+- [ ] Multi-video batch processing (geographic diversity)
 - [ ] Production benchmarking (256GB dataset)
+- [ ] dbt transformation layer (data quality tests)
 
 ### Planned 📋
-- [ ] Snowflake Kafka Connector setup
-- [ ] Geospatial analytics (ST_DISTANCE, clustering)
-- [ ] Map diff generation (OSM comparison)
+- [ ] Automated map diff generation (OSM comparison)
 - [ ] Real-time dashboard (detection heatmap)
+- [ ] H3/S2 spatial indexing for faster joins
 - [ ] CI/CD pipeline (GitHub Actions)
+- [ ] Time-series analysis (detection trends)
 
 ---
 
@@ -382,8 +387,8 @@ MIT License - See [LICENSE](LICENSE) for details
 ## 📬 Contact
 
 **Author**: Boyang Li  
-**Email**: bryanli2009@live.ca
-**LinkedIn**: [\linkedin\]  ](https://www.linkedin.com/in/boyang419/)
+**Email**: bryanli2009@live.ca  
+**LinkedIn**: [linkedin.com/in/boyang419](https://www.linkedin.com/in/boyang419/)
 
 ---
 
