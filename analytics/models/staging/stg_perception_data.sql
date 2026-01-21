@@ -29,8 +29,8 @@ flattened as (
         
         -- Create geography point for spatial operations
         st_makepoint(
-            record_content:longitude::float,
-            record_content:latitude::float
+            record_content:vehicle_lon::float,
+            record_content:vehicle_lat::float
         ) as detection_location,
         
         -- Metadata
