@@ -85,62 +85,37 @@ def upload_to_snowflake(nodes: list, source_file: str):
     try:
         print(f"🚀 Uploading {len(nodes)} OSM nodes to Snowflake...")
         
-        # Use COPY INTO for faster bulk loading
-        # Create temporary CSV file
-        import csv
-        import tempfile
+        # Use executemany with batching for best performance
+        batch_size = 16384  # Snowflake's max batch size
+        total_inserted = 0
         
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False, newline='') as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(['OSM_ID', 'OSM_TYPE', 'LATITUDE', 'LONGITUDE', 'TAGS', 'SOURCE_FILE'])
+        insert_sql = """
+        INSERT INTO REF_OSM_NODES 
+        (OSM_ID, OSM_TYPE, LATITUDE, LONGITUDE, TAGS, UPLOADED_AT, SOURCE_FILE)
+        SELECT column1, column2, column3, column4, PARSE_JSON(column5), CURRENT_TIMESTAMP(), column6
+        FROM VALUES (%s, %s, %s, %s, %s, %s)
+        """
+        
+        for i in range(0, len(nodes), batch_size):
+            batch = nodes[i:i+batch_size]
             
-            for node in nodes:
-                writer.writerow([
+            # Prepare batch data
+            batch_data = [
+                (
                     node['osm_id'],
                     node['osm_type'],
                     node['lat'],
                     node['lon'],
                     json.dumps(node['tags']),
                     source_file
-                ])
+                )
+                for node in batch
+            ]
             
-            temp_csv = csvfile.name
-        
-        print(f"✅ Created temporary CSV: {temp_csv}")
-        print(f"📤 Uploading via Snowflake stage...")
-        
-        # Upload file to Snowflake stage and load
-        cursor.execute("""
-        CREATE TEMP STAGE IF NOT EXISTS osm_stage
-        FILE_FORMAT = (TYPE = CSV FIELD_OPTIONALLY_ENCLOSED_BY = '"' SKIP_HEADER = 1)
-        """)
-        
-        cursor.execute(f"PUT file://{temp_csv} @osm_stage")
-        
-        cursor.execute(f"""
-        COPY INTO REF_OSM_NODES (OSM_ID, OSM_TYPE, LATITUDE, LONGITUDE, TAGS, UPLOADED_AT, SOURCE_FILE)
-        FROM (
-            SELECT 
-                $1, 
-                $2, 
-                $3, 
-                $4, 
-                PARSE_JSON($5), 
-                CURRENT_TIMESTAMP(), 
-                $6
-            FROM @osm_stage
-        )
-        FILE_FORMAT = (TYPE = CSV FIELD_OPTIONALLY_ENCLOSED_BY = '"' SKIP_HEADER = 1)
-        ON_ERROR = CONTINUE
-        """)
-        
-        result = cursor.fetchone()
-        print(f"✅ Bulk insert complete: {result}")
-        
-        # Clean up
-        cursor.execute("REMOVE @osm_stage")
-        import os
-        os.unlink(temp_csv)
+            cursor.executemany(insert_sql, batch_data)
+            total_inserted += len(batch)
+            
+            print(f"✅ Inserted {total_inserted}/{len(nodes)} nodes")
         
         conn.commit()
         
@@ -177,12 +152,12 @@ def upload_to_snowflake(nodes: list, source_file: str):
 
 def main():
     # Path to your OSM XML file
-    osm_file = Path('/Users/boyangli/Repo/sentinel-map/local-mvp/toronto_traffic.xml')
+    osm_file = Path('/Users/boyangli/Repo/sentinel-map/modules/local-mvp/toronto_traffic.xml')
     
     if not osm_file.exists():
         print(f"❌ File not found: {osm_file}")
         # Try relative path as fallback
-        osm_file = Path(__file__).parent.parent.parent / 'local-mvp' / 'toronto_traffic.xml'
+        osm_file = Path(__file__).parent.parent / 'local-mvp' / 'toronto_traffic.xml'
         if not osm_file.exists():
             print(f"❌ Also tried: {osm_file}")
             return
