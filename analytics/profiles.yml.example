@@ -1,0 +1,14 @@
+sentinel_map:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: YOUR_ACCOUNT_HERE  # e.g., SMAIKZB-IZC24119
+      user: YOUR_USERNAME_HERE
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: SENTINEL_ROLE
+      database: SENTINEL_MAP
+      warehouse: SENTINEL_WH
+      schema: DBT_DEV
+      threads: 4
+      client_session_keep_alive: False

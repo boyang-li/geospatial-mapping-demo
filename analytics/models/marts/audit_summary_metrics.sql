@@ -6,7 +6,7 @@
 }}
 
 select
-    date(recording_timestamp) as audit_date,
+    try_to_date(recording_timestamp, 'DD/MM/YYYY HH24:MI:SS') as audit_date,
     detected_class,
     audit_status,
     

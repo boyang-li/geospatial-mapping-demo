@@ -19,11 +19,11 @@ flattened as (
         -- Extract JSON fields from VARIANT column
         record_content:video_name::string as video_name,
         record_content:frame_number::integer as frame_number,
-        record_content:timestamp_ms::float as timestamp_ms,
-        record_content:object_class::string as object_class,
+        record_content:timestamp_sec::float as timestamp_ms,
+        record_content:class_name::string as object_class,
         record_content:confidence::float as confidence,
-        record_content:latitude::float as latitude,
-        record_content:longitude::float as longitude,
+        record_content:vehicle_lat::float as latitude,
+        record_content:vehicle_lon::float as longitude,
         record_content:vehicle_id::string as vehicle_id,
         record_content:recording_timestamp::string as recording_timestamp,
         

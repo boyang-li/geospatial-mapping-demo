@@ -220,6 +220,39 @@ frame_number,timestamp_sec,u,v,confidence,class_name,vehicle_lat,vehicle_lon,hea
 
 ---
 
+### Module C: Data Modeling (Snowflake)
+**Purpose**: Store and validate detections against OSM ground truth
+
+**Key Features**:
+- Snowpipe Streaming (real-time ingestion from Kafka)
+- VARIANT JSON storage with flexible schema
+- Spatial queries with GEOGRAPHY type (ST_DISTANCE)
+- 51,556 OSM nodes for Toronto traffic infrastructure
+- Proximity matching with configurable thresholds
+
+**Technology**: Snowflake, SQL, Snowpipe Streaming, GEOGRAPHY
+
+[📖 Module C Documentation](modules/data-modeling/README.md)
+
+---
+
+### Module D: Analytics Layer (dbt Cloud)
+**Purpose**: Transform raw data into actionable insights with data quality validation
+
+**Key Features**:
+- 3-layer architecture (staging → core → marts)
+- Spatial audit with ST_DISTANCE joins (10m threshold)
+- Automated classification (VERIFIED, CLASS_MISMATCH, NEW_DISCOVERY)
+- 16 data quality tests (100% pass rate)
+- Daily aggregations with verification rates
+- Prioritized review queue (HIGH/MEDIUM/LOW)
+
+**Technology**: dbt Core, Snowflake, SQL, Python
+
+[📖 Module D Documentation](analytics/README.md)
+
+---
+
 ## 📈 Performance Metrics
 
 ### Module A: Perception
@@ -317,6 +350,8 @@ KAFKA_BATCH_SIZE=16384
 
 - **[Module A (Perception)](modules/perception/README.md)** - YOLOv8 detection pipeline
 - **[Module B (Ingestion)](modules/ingestion/README.md)** - Kafka producer
+- **[Module C (Data Modeling)](modules/data-modeling/README.md)** - Snowflake setup
+- **[Module D (Analytics)](analytics/README.md)** - dbt transformation layer
 - **[Production Specs](docs/prod-pipeline-specs-en.md)** - Architecture details
 - **[Confluent Setup](docs/CONFLUENT_SETUP.md)** - Kafka configuration
 - **[Local MVP](local-mvp/README.md)** - Proof-of-concept reference
@@ -338,15 +373,17 @@ KAFKA_BATCH_SIZE=16384
 - [x] Module C: Kafka-Snowflake connector (Snowpipe Streaming)
 - [x] Module C: OSM ground truth ingestion (51,556 Toronto nodes)
 - [x] Module C: Spatial proximity matching (ST_DISTANCE queries)
+- [x] Module D: dbt analytics layer (staging → core → marts)
+- [x] Module D: Spatial audit with 10m verification threshold
+- [x] Module D: Data quality tests (16 tests, 100% pass rate)
+- [x] Module D: Batch processing (90 detections from 10 videos)
 - [x] Confluent Cloud integration (100% success rate)
-- [x] End-to-end testing (26 detections, 55% match rate with OSM)
-- [x] Modular architecture (perception → ingestion → analytics)
-- [x] Comprehensive documentation (READMEs + SQL scripts + troubleshooting)
+- [x] End-to-end testing (90 detections processed through full pipeline)
+- [x] Modular architecture (perception → ingestion → modeling → analytics)
+- [x] Comprehensive documentation (READMEs + SQL + dbt models + troubleshooting)
 
 ### In Progress 🚧
-- [ ] Multi-video batch processing (geographic diversity)
 - [ ] Production benchmarking (256GB dataset)
-- [ ] dbt transformation layer (data quality tests)
 
 ### Planned 📋
 - [ ] Automated map diff generation (OSM comparison)
