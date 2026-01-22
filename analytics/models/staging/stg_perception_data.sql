@@ -45,6 +45,8 @@ select
     -- Data quality flag
     case
         when latitude is null or longitude is null then 'missing_coordinates'
+        when latitude < -90 or latitude > 90 then 'invalid_latitude'
+        when longitude < -180 or longitude > 180 then 'invalid_longitude'
         when confidence < 0.3 then 'low_confidence'
         when object_class is null then 'missing_class'
         else 'valid'
@@ -52,3 +54,5 @@ select
 from flattened
 where latitude is not null
   and longitude is not null
+  and latitude between -90 and 90
+  and longitude between -180 and 180

@@ -1,0 +1,5 @@
+usage: detect_and_extract.py [-h] --video VIDEO [--output-csv OUTPUT_CSV]
+                             [--output-patches OUTPUT_PATCHES] [--model MODEL]
+                             [--device {mps,cuda,cpu}] [--conf CONF]
+                             [--sample-fps SAMPLE_FPS]
+detect_and_extract.py: error: the following arguments are required: --video
