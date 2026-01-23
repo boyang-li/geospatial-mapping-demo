@@ -1,7 +1,7 @@
 # SentinelMap
 
 **Dashcam-Powered Traffic Sign Map Validation**  
-YOLOv8 → Kafka → Snowflake → dbt → OSM verification (84.1% match rate)
+YOLOv8 → Kafka → Snowflake → dbt → Real-time Dashboard
 
 ## Results
 
@@ -14,6 +14,15 @@ YOLOv8 → Kafka → Snowflake → dbt → OSM verification (84.1% match rate)
 | Traffic Lights Verified | 455,761 (avg 25m to OSM) |
 | Stop Signs Verified | 5,629 (avg 39m to OSM) |
 
+## Dashboard
+
+Real-time detection heatmap and analytics powered by Streamlit:
+
+![SentinelMap Dashboard](modules/dashboard/streamlit-screenshot.png)
+
+**Features**: Detection heatmap, verification status scatter plot, 30-day trend charts, class breakdown analytics.  
+**Run locally**: `cd modules/dashboard && streamlit run app.py`
+
 ## Project Overview
 
 SentinelMap transforms raw dashcam footage into actionable map intelligence:
@@ -23,7 +32,7 @@ SentinelMap transforms raw dashcam footage into actionable map intelligence:
     ↓
 🤖 Module A: Perception Layer (YOLOv8 Detection + GPS Extraction)
     ↓
-📊 CSV Detections (500K records)
+📊 CSV Detections (1.2M records)
     ↓
 🚀 Module B: Ingestion Layer (Golang Kafka Producer)
     ↓
@@ -31,7 +40,9 @@ SentinelMap transforms raw dashcam footage into actionable map intelligence:
     ↓
 ❄️  Snowflake Warehouse (Geospatial Analytics)
     ↓
-🗺️  Automated Map Updates
+📈 Module C: Analytics (dbt + Streamlit Dashboard)
+    ↓
+🗺️  Real-time Map Insights
 ```
 
 ---
@@ -39,35 +50,41 @@ SentinelMap transforms raw dashcam footage into actionable map intelligence:
 ## 📂 Project Structure
 
 ```
-geospatial-mapping-demo/
+sentinel-map/
 ├── modules/
 │   ├── perception/              # Module A: YOLOv8 Detection (Python)
 │   │   ├── detect_and_extract.py  # Main detection pipeline
+│   │   ├── batch_process.sh       # Batch video processing
 │   │   ├── requirements.txt       # Python dependencies
 │   │   └── README.md              # Perception layer docs
 │   │
-│   └── ingestion/               # Module B: Kafka Producer (Go)
-│       ├── cmd/                   # CLI applications
-│       ├── config/                # Kafka configuration
-│       ├── models/                # Data models
-│       ├── producer/              # Producer logic
-│       ├── ingestion/             # CSV streaming
-│       ├── Makefile               # Build commands
-│       └── README.md              # Ingestion layer docs
+│   ├── ingestion/               # Module B: Kafka Producer (Go)
+│   │   ├── cmd/                   # CLI applications
+│   │   ├── config/                # Kafka configuration
+│   │   ├── models/                # Data models
+│   │   ├── producer/              # Producer logic with tuning
+│   │   ├── ingestion/             # CSV streaming with bbox support
+│   │   ├── Makefile               # Build commands
+│   │   └── README.md              # Ingestion layer docs
+│   │
+│   └── dashboard/               # Module C: Real-time Dashboard (Streamlit)
+│       ├── app.py                 # Streamlit visualization app
+│       ├── config.py              # Snowflake connection
+│       ├── requirements.txt       # Dashboard dependencies
+│       └── README.md              # Dashboard setup guide
+│
+├── analytics/                   # dbt Transformation Layer
+│   ├── models/
+│   │   ├── staging/               # Raw data normalization
+│   │   ├── core/                  # Fact tables (fct_map_audit)
+│   │   └── marts/                 # Aggregated metrics
+│   ├── dbt_project.yml
+│   └── README.md                  # dbt setup guide
 │
 ├── data/                        # Shared data directory
 │   ├── videos/                    # Input: dashcam footage
 │   ├── detections/                # Output: CSV detection files
 │   └── roi_patches/               # Output: 256×256 ROI images
-│
-├── docs/                        # Documentation
-│   ├── prod-pipeline-specs-en.md  # Architecture specs
-│   └── CONFLUENT_SETUP.md         # Kafka setup guide
-│
-├── local-mvp/                   # Proof-of-concept (reference only)
-│   ├── traffic_sign_detection/
-│   ├── streamlit_app.py
-│   └── README.md
 │
 └── README.md                    # This file
 ```
