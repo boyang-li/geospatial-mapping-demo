@@ -18,6 +18,8 @@ type KafkaConfig struct {
 	MaxInFlight      int
 	LingerMS         int
 	BatchSize        int
+	RequestTimeoutMS int
+	DeliveryTimeoutMS int
 }
 
 // NewKafkaConfig creates a new Kafka configuration from environment variables
@@ -34,6 +36,8 @@ func NewKafkaConfig() *KafkaConfig {
 		MaxInFlight:      getEnvInt("KAFKA_MAX_IN_FLIGHT", 5),
 		LingerMS:         getEnvInt("KAFKA_LINGER_MS", 10),
 		BatchSize:        getEnvInt("KAFKA_BATCH_SIZE", 16384),
+		RequestTimeoutMS: getEnvInt("KAFKA_REQUEST_TIMEOUT_MS", 30000),
+		DeliveryTimeoutMS: getEnvInt("KAFKA_DELIVERY_TIMEOUT_MS", 120000),
 	}
 }
 

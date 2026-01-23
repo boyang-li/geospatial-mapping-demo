@@ -215,14 +215,19 @@ class PerceptionPipeline:
         # Create output directory
         os.makedirs(output_patches_dir, exist_ok=True)
         
-        # Open CSV writer
-        csv_file = open(output_csv, 'w', newline='')
+        # Get video name from path
+        video_name = os.path.basename(video_path)
+        
+        # Open CSV writer (append mode, write header only if new file)
+        file_exists = os.path.exists(output_csv)
+        csv_file = open(output_csv, 'a', newline='')
         csv_writer = csv.writer(csv_file)
-        csv_writer.writerow([
-            'frame_number', 'timestamp_sec', 'u', 'v',
-            'confidence', 'class_name',
-            'vehicle_lat', 'vehicle_lon', 'recording_timestamp'
-        ])
+        if not file_exists:
+            csv_writer.writerow([
+                'video_name', 'frame_number', 'timestamp_sec', 'u', 'v',
+                'confidence', 'class_name',
+                'vehicle_lat', 'vehicle_lon', 'recording_timestamp'
+            ])
         
         frame_count = 0
         processed_count = 0
@@ -273,9 +278,10 @@ class PerceptionPipeline:
                     patch_path = os.path.join(output_patches_dir, patch_filename)
                     cv2.imwrite(patch_path, patch)
                     
-                    # Write CSV row
+                    # Write CSV row with video name
                     timestamp_sec = frame_count / video_fps
                     csv_writer.writerow([
+                        video_name,
                         frame_count,
                         f"{timestamp_sec:.3f}",
                         f"{u:.2f}",

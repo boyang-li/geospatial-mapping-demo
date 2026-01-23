@@ -14,6 +14,7 @@ type Detection struct {
 	IngestedAt   time.Time `json:"ingested_at"`
 	
 	// Frame-level data
+	VideoName     string    `json:"video_name"`
 	FrameNumber   int       `json:"frame_number"`
 	TimestampSec  float64   `json:"timestamp_sec"`
 	

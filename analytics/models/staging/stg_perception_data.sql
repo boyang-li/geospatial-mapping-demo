@@ -47,7 +47,7 @@ select
         when latitude is null or longitude is null then 'missing_coordinates'
         when latitude < -90 or latitude > 90 then 'invalid_latitude'
         when longitude < -180 or longitude > 180 then 'invalid_longitude'
-        when confidence < 0.3 then 'low_confidence'
+        when confidence < 0.25 then 'low_confidence'  -- Match YOLOv8 threshold
         when object_class is null then 'missing_class'
         else 'valid'
     end as data_quality_flag

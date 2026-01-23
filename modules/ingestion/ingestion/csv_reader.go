@@ -102,14 +102,39 @@ func (cr *CSVReader) parseRow(row []string, colMap map[string]int) (*models.Dete
 		return nil, fmt.Errorf("invalid timestamp_sec: %w", err)
 	}
 	
-	u, err := strconv.ParseFloat(row[colMap["u"]], 64)
-	if err != nil {
-		return nil, fmt.Errorf("invalid u: %w", err)
-	}
-	
-	v, err := strconv.ParseFloat(row[colMap["v"]], 64)
-	if err != nil {
-		return nil, fmt.Errorf("invalid v: %w", err)
+	// Support both u/v (centroid) and bbox_x1/y1/x2/y2 (bounding box)
+	var u, v float64
+	if uIdx, ok := colMap["u"]; ok && uIdx < len(row) {
+		u, err = strconv.ParseFloat(row[uIdx], 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid u: %w", err)
+		}
+		v, err = strconv.ParseFloat(row[colMap["v"]], 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid v: %w", err)
+		}
+	} else if x1Idx, ok := colMap["bbox_x1"]; ok && x1Idx < len(row) {
+		// Calculate centroid from bounding box
+		x1, err := strconv.ParseFloat(row[colMap["bbox_x1"]], 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid bbox_x1: %w", err)
+		}
+		y1, err := strconv.ParseFloat(row[colMap["bbox_y1"]], 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid bbox_y1: %w", err)
+		}
+		x2, err := strconv.ParseFloat(row[colMap["bbox_x2"]], 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid bbox_x2: %w", err)
+		}
+		y2, err := strconv.ParseFloat(row[colMap["bbox_y2"]], 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid bbox_y2: %w", err)
+		}
+		u = (x1 + x2) / 2.0
+		v = (y1 + y2) / 2.0
+	} else {
+		return nil, fmt.Errorf("missing pixel coordinates (expected u/v or bbox_x1/y1/x2/y2)")
 	}
 	
 	confidence, err := strconv.ParseFloat(row[colMap["confidence"]], 64)
@@ -118,6 +143,12 @@ func (cr *CSVReader) parseRow(row []string, colMap map[string]int) (*models.Dete
 	}
 	
 	className := row[colMap["class_name"]]
+	
+	// Parse video_name (if present)
+	var videoName string
+	if vnIdx, ok := colMap["video_name"]; ok && vnIdx < len(row) {
+		videoName = row[vnIdx]
+	}
 	
 	// Parse GPS fields (if present)
 	var vehicleLat, vehicleLon *float64
@@ -142,6 +173,7 @@ func (cr *CSVReader) parseRow(row []string, colMap map[string]int) (*models.Dete
 		VehicleID:    cr.vehicleID,
 		SessionID:    cr.sessionID,
 		IngestedAt:   time.Now(),
+		VideoName:    videoName,
 		FrameNumber:  frameNumber,
 		TimestampSec: timestampSec,
 		PixelU:       u,

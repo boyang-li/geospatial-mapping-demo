@@ -1,17 +1,19 @@
-# SentinelMap Analytics (dbt Cloud)
+# SentinelMap Analytics (dbt)
 
-This directory contains the dbt models for transforming raw perception data into actionable insights.
+dbt models for transforming raw perception data into validated traffic infrastructure maps.
+
+**Current Results**: 84.1% OSM verification rate (461k/548k detections)
 
 ## Architecture
 
 ```
 ┌─────────────────┐
-│  RAW Layer      │  STG_DETECTIONS (Kafka → Snowpipe)
+│  RAW Layer      │  STG_DETECTIONS (Kafka → Snowpipe, VARIANT column)
 │                 │  REF_OSM_NODES (OpenStreetMap ground truth)
 └────────┬────────┘
          │
 ┌────────▼────────┐
-│ STAGING Layer   │  stg_perception_data (flatten VARIANT JSON)
+│ STAGING Layer   │  stg_perception_data (flatten VARIANT → typed columns)
 │                 │  stg_osm_ground_truth (normalize OSM types)
 └────────┬────────┘
          │
@@ -30,23 +32,20 @@ This directory contains the dbt models for transforming raw perception data into
 
 ## Quick Start
 
-### 1. Prerequisites
+### Prerequisites
 - Snowflake account with SENTINEL_ROLE configured
-- Python 3.9+ with virtual environment
-- dbt Cloud account (for production) OR dbt Core (for local development)
+- Python 3.9+ with dbt-snowflake installed
+- Kafka → Snowpipe ingestion pipeline active
 
-### 2. Local Development Setup
+### Local Development Setup
 
 ```bash
 # Create profiles.yml from example
 cp profiles.yml.example profiles.yml
 # Edit profiles.yml with your credentials
 
-# Create .env file
-echo "SNOWFLAKE_PASSWORD=your_password_here" > .env
-
-# Install dependencies (if not already in venv)
-pip install dbt-snowflake==1.8.3
+# Install dependencies
+pip install dbt-snowflake
 
 # Install dbt packages
 dbt deps

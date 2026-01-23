@@ -83,8 +83,8 @@ func main() {
 			log.Printf("⚠️  Batch send errors: %v", err)
 		}
 		
-		// Flush and wait
-		kafkaProducer.Flush(30 * time.Second)
+		// Flush and wait (90s for large batches)
+		kafkaProducer.Flush(90 * time.Second)
 		
 	} else {
 		// Streaming mode: Continuous channel-based streaming
@@ -104,8 +104,8 @@ func main() {
 			log.Printf("⚠️  Stream errors: %v", err)
 		}
 		
-		// Flush remaining messages
-		kafkaProducer.Flush(30 * time.Second)
+		// Flush remaining messages (90s for large batches)
+		kafkaProducer.Flush(90 * time.Second)
 	}
 	
 	elapsed := time.Since(startTime)

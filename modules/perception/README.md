@@ -1,29 +1,30 @@
 # Module A: Perception Layer
 
+> **Hardware**: VIOFO A119 V3 Dashcam (2560x1440@30fps, Novatek chipset)  
+> **GPS Source**: Binary metadata (exiftool) - 1Hz GPS interpolated to 30fps  
+> **Model**: YOLOv8n with MPS acceleration (M4 MacBook Pro)
+
 YOLOv8-based traffic sign detection and ROI extraction for dashcam videos.
 
 ## Overview
 
-This module processes raw dashcam footage to generate structured detection metadata for downstream ingestion:
+Processes dashcam videos with YOLOv8 detection and GPS metadata extraction:
 
-1. **Video Input** → 256GB dashcam videos with GPS overlays
-2. **Detection** → YOLOv8 identifies traffic signs at 1 FPS sampling
-3. **GPS Extraction** → Parse coordinates from frame overlays (TODO: OCR)
-4. **ROI Extraction** → 256×256 patches around detections (bandwidth optimization)
-5. **CSV Output** → Metadata for Module B (Ingestion Layer)
-
-**Pipeline**: Video → **This Module** → CSV + ROI patches → Module B (Kafka) → Confluent Cloud → Snowflake
+- **Input**: VIOFO A119 V3 MP4 videos with embedded GPS (Novatek chipset)
+- **Detection**: YOLOv8n identifies traffic lights and stop signs
+- **GPS Extraction**: Binary metadata via exiftool (1Hz → interpolated to 30fps)
+- **Output**: CSV detections + 256×256 ROI patches
+- **Performance**: ~100 FPS inference with M4 MPS acceleration
 
 ---
 
 ## Features
 
-- ✅ **M4 Hardware Acceleration**: MPS (Metal Performance Shaders) for ~100 FPS inference
-- ✅ **Smart Sampling**: 1 FPS default (reduces 30 FPS video to ~3% of frames)
-- ✅ **ROI Extraction**: 256×256 patches for efficient storage/transmission
-- ✅ **GPS Enrichment**: Vehicle coordinates + heading from frame metadata
-- ✅ **Target Classes**: Stop signs and traffic lights (configurable)
-- 🚧 **OCR Integration**: Planned for GPS overlay parsing (currently simulated)
+- **MPS Acceleration**: M4 Metal Performance Shaders (~100 FPS inference)
+- **Binary GPS Extraction**: exiftool reads Novatek metadata (1Hz → 30fps interpolation)
+- **Smart Sampling**: 1 FPS default (processes ~3% of frames)
+- **ROI Extraction**: 256×256 patches for bandwidth optimization
+- **Target Classes**: Traffic lights and stop signs
 
 ---
 

@@ -55,9 +55,13 @@ func NewKafkaProducer(cfg *config.KafkaConfig) (*KafkaProducer, error) {
 		// Idempotence for exactly-once semantics
 		"enable.idempotence": true,
 		
-		// Request timeout
-		"request.timeout.ms": 30000,
-		"delivery.timeout.ms": 120000,
+		// Timeout configuration (from env)
+		"request.timeout.ms": cfg.RequestTimeoutMS,
+		"delivery.timeout.ms": cfg.DeliveryTimeoutMS,
+		
+		// Buffer management for large batches
+		"queue.buffering.max.messages": 500000,
+		"queue.buffering.max.kbytes": 1048576,
 	}
 	
 	p, err := kafka.NewProducer(producerConfig)
@@ -302,8 +306,8 @@ func (kp *KafkaProducer) Close() {
 	// Cancel context to stop workers
 	kp.cancel()
 	
-	// Flush remaining messages
-	kp.Flush(30 * time.Second)
+	// Flush remaining messages (90s for large batches)
+	kp.Flush(90 * time.Second)
 	
 	// Wait for delivery reports
 	kp.wg.Wait()

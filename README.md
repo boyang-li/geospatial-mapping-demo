@@ -1,13 +1,20 @@
-# SentinelMap: Automated Traffic Sign Geolocation System
+# SentinelMap
 
-A production-grade geospatial mapping pipeline that processes dashcam footage to detect, geolocate, and map traffic infrastructure at scale.
+**Dashcam-Powered Traffic Sign Map Validation**  
+YOLOv8 → Kafka → Snowflake → dbt → OSM verification (84.1% match rate)
 
-**Inspired by**: Lyft's Level 5 Mapping Platform  
-**Goal**: Automate map auditing using computer vision + GPS telemetry + cloud analytics
+## Results
 
----
+| Metric | Value |
+|--------|-------|
+| OSM Verification Rate | 84.1% (461k/548k) |
+| Videos Processed | 334 (VIOFO A119 V3) |
+| GPS Coverage | 24km × 16km |
+| Unique GPS Locations | 251,620 |
+| Traffic Lights Verified | 455,761 (avg 25m to OSM) |
+| Stop Signs Verified | 5,629 (avg 39m to OSM) |
 
-## 🎯 Project Overview
+## Project Overview
 
 SentinelMap transforms raw dashcam footage into actionable map intelligence:
 

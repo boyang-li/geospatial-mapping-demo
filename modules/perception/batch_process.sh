@@ -1,11 +1,11 @@
 #!/bin/bash
-# 批量处理外部存储设备中的视频文件
+# 批量处理本地视频文件 (优化版：从local SSD读取)
 
-VIDEO_DIR="/Volumes/VOLUME1/DCIM/Movie"
-OUTPUT_CSV="../../data/detections/batch_external_detections.csv"
+VIDEO_DIR="../../data/videos"
+OUTPUT_CSV="../../data/detections/batch_all_detections.csv"
 PYTHON_BIN="/Users/boyangli/Repo/sentinel-map/.venv/bin/python"
 SCRIPT="detect_and_extract.py"
-LOG_FILE="batch_external_$(date +%Y%m%d_%H%M%S).log"
+LOG_FILE="batch_local_$(date +%Y%m%d_%H%M%S).log"
 
 # 检查视频目录
 if [ ! -d "$VIDEO_DIR" ]; then
@@ -24,7 +24,7 @@ if [ $TOTAL -eq 0 ]; then
 fi
 
 echo "╔═══════════════════════════════════════════════════════════════╗"
-echo "║         批量处理外部存储视频 - VOLUME1/DCIM/Movie            ║"
+echo "║         批量处理本地视频 - Local SSD (Optimized)            ║"
 echo "╚═══════════════════════════════════════════════════════════════╝"
 echo ""
 echo "📹 总视频数: $TOTAL"
@@ -35,11 +35,10 @@ echo ""
 echo "▶️  开始批量处理..."
 echo ""
 
-# 清空输出CSV（如果存在）
+# Delete output CSV if exists (fresh start)
 if [ -f "$OUTPUT_CSV" ]; then
-    BACKUP_CSV="${OUTPUT_CSV}.backup_$(date +%Y%m%d_%H%M%S)"
-    echo "📦 备份现有CSV到: $BACKUP_CSV"
-    mv "$OUTPUT_CSV" "$BACKUP_CSV"
+    rm "$OUTPUT_CSV"
+    echo "🗑️  Removed existing CSV for fresh start"
 fi
 
 # 计数器

@@ -29,4 +29,4 @@ models:
       +schema: marts
 
 vars:
-  audit_threshold_meters: 10
+  audit_threshold_meters: 100  # Match spatial join threshold (was 10)

@@ -31,9 +31,10 @@ frame_number,timestamp_sec,u,v,confidence,class_name,vehicle_lat,vehicle_lon,hea
 - `frame_number`: Video frame index
 - `timestamp_sec`: Video timestamp in seconds
 - `u`, `v`: Pixel coordinates (bottom-center of bounding box)
+  - Supports both `u,v` columns and `bbox_x1,bbox_y1,bbox_x2,bbox_y2` (auto-calculates centroid)
 - `confidence`: YOLO confidence score (0-1)
 - `class_name`: Object class ("stop sign" or "traffic light")
-- `vehicle_lat`, `vehicle_lon`: GPS coordinates from frame image metadata
+- `vehicle_lat`, `vehicle_lon`: GPS coordinates from binary metadata (exiftool)
 - `heading`: Vehicle heading in degrees (0°=North)
 
 ### Output: Kafka JSON
