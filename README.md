@@ -18,7 +18,10 @@ YOLOv8 → Kafka → Snowflake → dbt → Real-time Dashboard
 
 Real-time detection heatmap and analytics powered by Streamlit:
 
-![SentinelMap Dashboard](modules/dashboard/streamlit-screenshot.png)
+<p align="center">
+  <img src="modules/dashboard/streamlit-screenshot.png" width="49%" alt="Detection Heatmap" />
+  <img src="modules/dashboard/streamlit-screenshot-2.png" width="49%" alt="Analytics Charts" />
+</p>
 
 **Features**: Detection heatmap, verification status scatter plot, 30-day trend charts, class breakdown analytics.  
 **Run locally**: `cd modules/dashboard && streamlit run app.py`
